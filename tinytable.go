@@ -255,7 +255,7 @@ func (t table) ReadRow(key []byte) (Row, error) {
 }
 
 func (t table) ScanRows(prefix []byte) chan Row {
-	out := make(chan Row)
+	out := make(chan Row, 1)
 
 	go func() {
 		t.internal.View(func(tx *bolt.Tx) error {
@@ -300,7 +300,7 @@ func (t table) ScanRows(prefix []byte) chan Row {
 }
 
 func (t table) ScanColumns(r, cfname []byte, prefix []byte) chan Column {
-	out := make(chan Column)
+	out := make(chan Column, 1)
 	go func() {
 		t.internal.View(func(tx *bolt.Tx) error {
 			tbl := tx.Bucket(t.Name)
