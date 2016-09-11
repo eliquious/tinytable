@@ -11,19 +11,43 @@ import (
 
 // DB is a small database abstraction built on top of Bolt DB modelled after Google's Big Table.
 type DB interface {
+
+	// GetOrCreateTable returns a table and creating it if id doesn't exist.
 	GetOrCreateTable(name []byte) (Table, error)
+
+	// DropTable drops a table from the database.
 	DropTable(name []byte) error
+
+	// Close closes the database for future reads and writes.
 	Close() error
 }
 
 // Table represents a table in the database.
 type Table interface {
+
+	// GetName returns the name of the table.
 	GetName() []byte
+
+	// WriteRows writes a list of rows to the table overwritting any existing values that overlap.
 	WriteRows(r ...Row) error
+
+	// WriteColumns writes a column to a row and column family returning an error if there is one. The row and column family
+	// will be created if they do not exist.
 	WriteColumns(r []byte, cf []byte, c ...Column) error
+
+	// IncrementColumn increments the value of a column by one. If the row or column family does not exist, they will be
+	// created and return an error if it fails. If the column does not exist, a value will be created to store an
+	// unsigned 64-bit integer. If the existing value is not 8 bytes, an error will be returned. Otherwise the value will be
+	// incremented.
 	IncrementColumn(r, cf, c []byte, v int) error
+
+	// ReadRow reads a single row from the table. Returns an error if the row does not exist.
 	ReadRow(key []byte) (Row, error)
+
+	// ScanRows scans a table for all rows with the given prefix. Note: All rows should be read from the channel to avoid memory leak.
 	ScanRows(prefix []byte) chan Row
+
+	// ScanColumns scans a row and column family for all columns with the given prefix. Note: All columns should be read from the channel to avoid memory leaks.
 	ScanColumns(r, cf []byte, prefix []byte) chan Column
 }
 
