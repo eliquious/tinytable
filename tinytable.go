@@ -12,6 +12,9 @@ import (
 // DB is a small database abstraction built on top of Bolt DB modelled after Google's Big Table.
 type DB interface {
 
+	// ListTables lists all the table names in the database.
+	ListTables() [][]byte
+
 	// GetOrCreateTable returns a table and creating it if id doesn't exist.
 	GetOrCreateTable(name []byte) (Table, error)
 
@@ -121,6 +124,21 @@ func Open(filename string, mode os.FileMode) (DB, error) {
 
 type db struct {
 	internal *bolt.DB
+}
+
+// ListTables lists all the tables in the database.
+func (db db) ListTables() [][]byte {
+	var tables [][]byte
+	db.internal.View(func(tx *bolt.Tx) error {
+		c := tx.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			if v == nil {
+				tables = append(tables, k)
+			}
+		}
+		return nil
+	})
+	return tables
 }
 
 func (db db) GetOrCreateTable(name []byte) (Table, error) {

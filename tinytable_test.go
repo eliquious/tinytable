@@ -20,6 +20,20 @@ func TestOpen(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestListTables(t *testing.T) {
+	filename := "tinytable.tt"
+	tdb, err := Open(filename, 600)
+	defer tdb.Close()
+	defer os.Remove(filename)
+	assert.Nil(t, err)
+
+	tables := [][]byte{[]byte("table1"), []byte("table2")}
+	for i := range tables {
+		tdb.GetOrCreateTable(tables[i])
+	}
+	assert.Equal(t, tables, tdb.ListTables())
+}
+
 func TestGetOrCreateTable(t *testing.T) {
 	filename := "tinytable.tt"
 	tdb, err := Open(filename, 600)
